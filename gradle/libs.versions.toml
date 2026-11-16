@@ -1,6 +1,41 @@
 [versions]
-agp = "8.9.0"
+# Build toolchain
+agp = "9.5.1"
+kotlin = "2.4.21"
+ksp = "2.3.14"
+
+# Hook stack
+yukihook = "1.5.0"
+kavaref = "1.1.1"
+libxposed = "102.0.0"
+
+# AndroidX / Material
+androidx-core = "1.19.1"
+androidx-appcompat = "1.8.0"
+androidx-activity = "1.13.0"
+androidx-preference = "1.2.1"
+material = "1.14.0"
+
+[libraries]
+yukihook-bom = { module = "com.highcapable.yukihookapi:yukihook-bom", version.ref = "yukihook" }
+yukihook-core = { module = "com.highcapable.yukihookapi:yukihook-core" }
+yukihook-compiler = { module = "com.highcapable.yukihookapi:yukihook-compiler", version.ref = "yukihook" }
+yukihook-extension-kavaref = { module = "com.highcapable.yukihookapi:yukihook-extension-kavaref" }
+yukihook-runtime-libxposed = { module = "com.highcapable.yukihookapi:yukihook-runtime-libxposed" }
+
+kavaref-bom = { module = "com.highcapable.kavaref:kavaref-bom", version.ref = "kavaref" }
+kavaref-core = { module = "com.highcapable.kavaref:kavaref-core" }
+kavaref-android = { module = "com.highcapable.kavaref:kavaref-android" }
+kavaref-extension = { module = "com.highcapable.kavaref:kavaref-extension" }
+
+libxposed-api = { module = "io.github.libxposed:api", version.ref = "libxposed" }
+
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidx-activity" }
+androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "androidx-preference" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

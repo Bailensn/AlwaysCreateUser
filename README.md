@@ -1,34 +1,107 @@
 # Always create user
 
-[![Xposed Module](https://img.shields.io/badge/Xposed%20Module-✓-green.svg)]()
-[![Android Version](https://img.shields.io/badge/Android-4.2%2B-blue.svg)]()
-[![GitHub issues](https://img.shields.io/github/issues/icepony/AlwaysCreateUser)](https://github.com/icepony/AlwaysCreateUser/issues)
+[![LSPosed Module](https://img.shields.io/badge/LSPosed-Module-green.svg)]()
+[![Android Version](https://img.shields.io/badge/Android-8.1%2B-blue.svg)]()
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.21-7F52FF.svg?logo=kotlin&logoColor=white)]()
+[![GitHub issues](https://github.com/icepony/AlwaysCreateUser/issues)](https://github.com/icepony/AlwaysCreateUser/issues)
 
-An Xposed Framework module that bypasses Android's user/profile creation limits
+An **LSPosed** module that bypasses Android's user and profile creation limits.
+
+It hooks `UserManagerService` inside the system framework, so profile managers such as
+[Island](https://github.com/oasisfeng/island) and [Shelter](https://github.com/PeterCxy/Shelter) can create
+additional users, managed profiles, clones and private spaces beyond the limits enforced by the system.
 
 ## Features
 
 - Bypass common profile creation errors
-  - `Cannot add more profiles of type android.os.usertype.profile.(MANAGED | CLONE | PRIVATE) for user
-    0`
+  - `Cannot add more profiles of type android.os.usertype.profile.(MANAGED | CLONE | PRIVATE) for user 0`
   - `Maximum user limit is reached`
   - `Cannot add more managed profiles for user`
   - `Error: couldn't create User`
-- Support Android 4.2 through Android 14+
+- One switch per bypass rule, plus a master switch
+- Works on Android 8.1 and later, including Android 16 / 17 based ROMs
 - Compatible with popular profile manager apps (Island, Shelter, etc.)
 
-## Compatibility Overview
+## Requirements
 
-The module hooks methods within [
-`UserManagerService.java`](https://github.com/aosp-mirror/platform_frameworks_base/blob/54642d141f80d495a475b304052eedd2832fcdb1/services/core/java/com/android/server/pm/UserManagerService.java#L5733)
+- **LSPosed** with libxposed API **101+** (LSPosed 1.9.0 or newer)
+- Android **8.1+** (LSPosed's own minimum)
+- The module only needs the **System Framework** scope
 
-| Android Version | Hook Methods List           |
-|-----------------|-----------------------------|
-| 14+             | `isCreationOverrideEnabled` |
-| 11-13           | `canAddMoreProfilesToUser`  |
-| 7-13            | `isUserLimitReached`        |
-| 6-10            | `canAddMoreManagedProfiles` |
-| 4.2-6           | `isUserLimitReachedLocked`  |
+> This project no longer uses the legacy Xposed Framework API. It is built with
+> [YukiHook](https://github.com/HighCapable/YukiHook) 1.5.0 on top of the
+> [libxposed](https://github.com/libxposed) API, so there is no `xposed_init` asset and no
+> `XSharedPreferences` workaround.
+
+## Installation
+
+1. Install the APK.
+2. Enable **Always create user** in LSPosed.
+3. Keep **System Framework** selected in the module scope.
+4. Reboot, or restart the system framework, so `system_server` loads the module.
+
+Open the module app at any time to toggle individual rules. If the LSPosed service is not reachable,
+the app shows a banner with the activation hint.
+
+## How it works
+
+The module resolves methods of
+[`UserManagerService`](https://github.com/aosp-mirror/platform_frameworks_base/blob/master/services/core/java/com/android/server/pm/UserManagerService.java)
+by name with [KavaRef](https://github.com/HighCapable/KavaRef) and replaces their return values through
+YukiHook's hook DSL.
+
+| Android version | Hooked methods                                                        |
+|-----------------|-----------------------------------------------------------------------|
+| 14+             | `isCreationOverrideEnabled`                                           |
+| 11–13           | `canAddMoreProfilesToUser`                                            |
+| 7–13            | `isUserLimitReached`                                                  |
+| 6–10            | `canAddMoreManagedProfiles`                                           |
+| 4.2–6           | `isUserLimitReachedLocked`                                            |
+
+A method that does not exist on the running Android release is skipped with a warning instead of
+failing the whole hook entry, so one build works across versions.
+
+## Build
+
+```bash
+./gradlew assembleRelease
+```
+
+Requirements: **JDK 17+**, Android SDK **Platform 37.2** and **Build Tools 36.0.0**.
+
+The project uses AGP 9's built-in Kotlin support, so the `org.jetbrains.kotlin.android` plugin is
+intentionally **not** applied. The Kotlin and KSP versions are raised through the buildscript
+classpath as documented by AGP.
+
+### Toolchain
+
+| Component        | Version   |
+|------------------|-----------|
+| Gradle           | 9.9.1     |
+| Android Gradle plugin | 9.5.1 |
+| Kotlin           | 2.4.21    |
+| KSP              | 2.3.14    |
+| YukiHook         | 1.5.0     |
+| KavaRef          | 1.1.1     |
+| libxposed API    | 102.0.0   |
+| compileSdk / targetSdk | 37 (37.2) |
+| minSdk           | 26        |
+
+### Project layout
+
+```
+app/src/main/java/io/github/icepony/alwayscreateuser/
+├── AlwaysCreateUserApplication.kt   # YukiHook ModuleApplication
+├── MainActivity.kt                  # Settings host + service status banner
+├── ModulePreferences.kt             # Shared preference keys
+├── SettingsFragment.kt              # ModulePreferenceFragment
+└── hook/
+    ├── HookEntry.kt                 # @YukiHookLibXposedEntry, scope = ["system"]
+    └── UserManagerServiceHooker.kt  # KavaRef lookup + YukiHook hooks
+```
+
+The entry class and `META-INF/xposed/*` files are generated by `yukihook-compiler` during the build;
+nothing is committed under `assets/` or `resources/META-INF/`.
 
 ## Screenshot
 
@@ -40,11 +113,12 @@ The module hooks methods within [
 
 ## Check Out My Other Project!
 
-* **[AlwaysBatterySaver](https://github.com/icepony/AlwaysBatterySaver)**: An Xposed module that
+* **[AlwaysBatterySaver](https://github.com/icepony/AlwaysBatterySaver)**: An LSPosed module that
   prevents Android from automatically disabling Battery Saver mode when the device is charging.
 
 ## Thanks
 
-* Xposed Framework Developers
-* [CorePatch](https://github.com/LSPosed/CorePatch) (Inspiration for hook structure)
-* LLMs (Gemini, DeepSeek, ChatGPT) for assistance.
+* [LSPosed](https://github.com/LSPosed/LSPosed) and the libxposed API developers
+* [YukiHook](https://github.com/HighCapable/YukiHook) and [KavaRef](https://github.com/HighCapable/KavaRef)
+* [CorePatch](https://github.com/LSPosed/CorePatch) (inspiration for the hook structure)
+* LLMs (Gemini, DeepSeek, ChatGPT) for assistance
